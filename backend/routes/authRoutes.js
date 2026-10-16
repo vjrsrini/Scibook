@@ -13,11 +13,25 @@ const generateToken = (id) => {
 router.post('/register', async (req, res) => {
   try {
     const User = getUserModel();
-    const { name, email, password, role, certificationLevel } = req.body;
-    const userExists = await User.findOne({ email });
+    const { name, email, username, password, role, certificationLevel } = req.body;
+    
+    if (!email || !password) {
+      return res.status(400).json({ message: 'Email and password are required' });
+    }
+
+    const cleanEmail = email.trim().toLowerCase();
+    const cleanUsername = (username || cleanEmail.split('@')[0] || name).trim().toLowerCase();
+
+    // Check if user with same email or username exists
+    const userExists = await User.findOne({
+      $or: [
+        { email: cleanEmail },
+        { username: cleanUsername }
+      ]
+    });
 
     if (userExists) {
-      return res.status(400).json({ message: 'User with this email already exists' });
+      return res.status(400).json({ message: 'User with this email or username already exists' });
     }
 
     const salt = await bcrypt.genSalt(10);
@@ -25,7 +39,8 @@ router.post('/register', async (req, res) => {
 
     const user = await User.create({
       name,
-      email,
+      username: cleanUsername,
+      email: cleanEmail,
       password: hashedPassword,
       role: role || 'student',
       certificationLevel: certificationLevel || 'none'
@@ -35,6 +50,7 @@ router.post('/register', async (req, res) => {
       res.status(201).json({
         _id: user._id,
         name: user.name,
+        username: user.username,
         email: user.email,
         role: user.role,
         certificationLevel: user.certificationLevel,
@@ -46,24 +62,41 @@ router.post('/register', async (req, res) => {
   }
 });
 
-// Login User
+// Login User (Supports Email, Username, or Name)
 router.post('/login', async (req, res) => {
   try {
     const User = getUserModel();
-    const { email, password } = req.body;
-    const user = await User.findOne({ email });
+    const { email, username, identifier, password } = req.body;
+    const loginIdentifier = (identifier || email || username || '').trim();
+
+    if (!loginIdentifier || !password) {
+      return res.status(400).json({ message: 'Username/Email and password are required' });
+    }
+
+    const escapeRegex = (str) => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const safeIdentifier = escapeRegex(loginIdentifier);
+
+    const user = await User.findOne({
+      $or: [
+        { email: new RegExp(`^${safeIdentifier}$`, 'i') },
+        { username: new RegExp(`^${safeIdentifier}$`, 'i') },
+        { name: new RegExp(`^${safeIdentifier}$`, 'i') },
+        { email: new RegExp(`^${safeIdentifier}@`, 'i') }
+      ]
+    });
 
     if (user && (await bcrypt.compare(password, user.password))) {
       res.json({
         _id: user._id,
         name: user.name,
+        username: user.username || user.email.split('@')[0],
         email: user.email,
         role: user.role,
         certificationLevel: user.certificationLevel,
         token: generateToken(user._id),
       });
     } else {
-      res.status(401).json({ message: 'Invalid email or password' });
+      res.status(401).json({ message: 'Invalid username/email or password' });
     }
   } catch (error) {
     res.status(500).json({ message: error.message });

@@ -20,6 +20,7 @@ const seedDatabase = async () => {
 
     const admin = await User.create({
       name: 'Dr. Sarah Connor (Lab Admin)',
+      username: 'admin',
       email: 'admin@scibook.io',
       password: passwordHash,
       role: 'admin',
@@ -28,6 +29,7 @@ const seedDatabase = async () => {
 
     const researcher = await User.create({
       name: 'Dr. Alex Rivera (Researcher)',
+      username: 'researcher',
       email: 'researcher@scibook.io',
       password: passwordHash,
       role: 'researcher',
@@ -36,6 +38,7 @@ const seedDatabase = async () => {
 
     const student = await User.create({
       name: 'Jordan Lee (Student)',
+      username: 'student',
       email: 'student@scibook.io',
       password: passwordHash,
       role: 'student',

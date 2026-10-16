@@ -20,9 +20,46 @@ const memoryDb = {
   // User Operations
   User: {
     findOne: async (query) => {
-      if (query.email) {
-        return users.find(u => u.email.toLowerCase() === query.email.toLowerCase()) || null;
+      if (!query) return null;
+      
+      // Simple direct email query
+      if (typeof query.email === 'string') {
+        return users.find(u => (u.email || '').toLowerCase() === query.email.toLowerCase()) || null;
       }
+
+      // Simple direct username query
+      if (typeof query.username === 'string') {
+        return users.find(u => (u.username || '').toLowerCase() === query.username.toLowerCase()) || null;
+      }
+
+      // $or multi-condition query (e.g. email, username, name, email prefix)
+      if (query.$or && Array.isArray(query.$or)) {
+        for (const condition of query.$or) {
+          for (const [key, val] of Object.entries(condition)) {
+            let searchStr = '';
+            if (val instanceof RegExp) {
+              searchStr = val.source.replace(/^\^|\$$|\\/g, '').replace(/@$/, '').toLowerCase();
+            } else if (typeof val === 'string') {
+              searchStr = val.toLowerCase();
+            }
+
+            if (searchStr) {
+              const matched = users.find(u => {
+                const uEmail = (u.email || '').toLowerCase();
+                const uName = (u.name || '').toLowerCase();
+                const uUsername = (u.username || uEmail.split('@')[0] || '').toLowerCase();
+
+                return uEmail === searchStr ||
+                       uUsername === searchStr ||
+                       uName === searchStr ||
+                       uEmail.startsWith(searchStr + '@');
+              });
+              if (matched) return matched;
+            }
+          }
+        }
+      }
+
       return null;
     },
     findById: async (id) => {
@@ -39,10 +76,12 @@ const memoryDb = {
       };
     },
     create: async (data) => {
+      const email = data.email || '';
       const newUser = {
         _id: generateId(),
         name: data.name,
-        email: data.email,
+        username: data.username || email.split('@')[0] || data.name,
+        email: email,
         password: data.password,
         role: data.role || 'student',
         certificationLevel: data.certificationLevel || 'none',

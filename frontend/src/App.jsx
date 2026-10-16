@@ -43,10 +43,10 @@ export const AuthProvider = ({ children }) => {
     setTimeout(() => setToast(null), 4000);
   };
 
-  const login = async (email, password) => {
+  const login = async (identifier, password) => {
     setLoading(true);
     try {
-      const res = await api.post('/auth/login', { email, password });
+      const res = await api.post('/auth/login', { identifier, email: identifier, password });
       localStorage.setItem('scibook_token', res.data.token);
       localStorage.setItem('scibook_user', JSON.stringify(res.data));
       setUser(res.data);
@@ -243,34 +243,35 @@ const AuthScreen = () => {
   const [isRegister, setIsRegister] = useState(false);
   
   // Login State
-  const [email, setEmail] = useState('');
+  const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
   
   // Register State
   const [regName, setRegName] = useState('');
+  const [regUsername, setRegUsername] = useState('');
   const [regEmail, setRegEmail] = useState('');
   const [regPassword, setRegPassword] = useState('');
   const [regRole, setRegRole] = useState('student');
 
   const handleLoginSubmit = (e) => {
     e.preventDefault();
-    login(email, password);
+    login(identifier, password);
   };
 
   const handleRegisterSubmit = (e) => {
     e.preventDefault();
-    register({ name: regName, email: regEmail, password: regPassword, role: regRole });
+    register({ name: regName, username: regUsername, email: regEmail, password: regPassword, role: regRole });
   };
 
   const fillDemoAccount = (demoRole) => {
     if (demoRole === 'admin') {
-      setEmail('admin@scibook.io');
+      setIdentifier('admin');
       setPassword('password123');
     } else if (demoRole === 'researcher') {
-      setEmail('researcher@scibook.io');
+      setIdentifier('researcher');
       setPassword('password123');
     } else if (demoRole === 'student') {
-      setEmail('student@scibook.io');
+      setIdentifier('student');
       setPassword('password123');
     }
   };
@@ -356,13 +357,13 @@ const AuthScreen = () => {
         {!isRegister ? (
           <form onSubmit={handleLoginSubmit}>
             <div className="input-group">
-              <label className="input-label">Email Address</label>
+              <label className="input-label">Username or Email Address</label>
               <input
-                type="email"
+                type="text"
                 className="input-control"
-                placeholder="admin@scibook.io"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                placeholder="admin, vjrsrini, or user@scibook.io"
+                value={identifier}
+                onChange={(e) => setIdentifier(e.target.value)}
                 required
               />
             </div>
@@ -422,6 +423,16 @@ const AuthScreen = () => {
                 value={regName}
                 onChange={(e) => setRegName(e.target.value)}
                 required
+              />
+            </div>
+            <div className="input-group">
+              <label className="input-label">Username (Optional)</label>
+              <input
+                type="text"
+                className="input-control"
+                placeholder="e.g. vjrsrini"
+                value={regUsername}
+                onChange={(e) => setRegUsername(e.target.value)}
               />
             </div>
             <div className="input-group">
