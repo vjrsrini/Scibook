@@ -29,6 +29,19 @@ app.use('/api/auth', authRoutes);
 app.use('/api/instruments', instrumentRoutes);
 app.use('/api/bookings', bookingRoutes);
 
+app.get('/', (req, res) => {
+  res.json({
+    status: 'online',
+    project: 'SciBook — Scientific Equipment & Lab Booking API',
+    endpoints: {
+      health: '/api/health',
+      auth: '/api/auth',
+      instruments: '/api/instruments',
+      bookings: '/api/bookings'
+    }
+  });
+});
+
 app.get('/api/health', (req, res) => {
   res.json({ status: 'OK', message: 'SciBook Scientific Instrument Management API is running' });
 });
