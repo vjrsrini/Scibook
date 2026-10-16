@@ -2,6 +2,11 @@
 
 SciBook is a high-performance, full-stack web application designed for academic institutions, research facilities, and scientific laboratories to manage high-precision equipment usage, user certification levels, and real-time reservation schedules.
 
+### 🌐 Live Production Links
+- **Frontend App:** [https://scibook-lac.vercel.app](https://scibook-lac.vercel.app)
+- **Backend API:** [https://scibook-backend.onrender.com](https://scibook-backend.onrender.com)
+- **GitHub Repository:** [https://github.com/vjrsrini/Scibook](https://github.com/vjrsrini/Scibook)
+
 ---
 
 ## 🚀 Tech Stack
